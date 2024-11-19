@@ -1,28 +1,57 @@
 "use client";
 
-import React, {ChangeEvent} from "react";
-import {useFormContext} from "react-hook-form";
-import {Input} from "@/components/ui/input";
-import {Textarea} from "@/components/ui/textarea";
-import {Label} from "@/components/ui/label";
+import React, { ChangeEvent } from "react";
+import { useFormContext } from "react-hook-form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Check, ChevronsUpDown } from "lucide-react";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command";
+
 import ImageUpload from "@/app/seller/products/components/ImageUpload";
+
+const frameworks = [
+    {
+        value: "dau",
+        label: "Dầu",
+    },
+    {
+        value: "thucPham",
+        label: "Thực phẩm",
+    },
+    {
+        value: "nhaDep",
+        label: "Nhà đẹp",
+    },
+    {
+        value: "dienMay",
+        label: "Điện máy",
+    },
+];
 
 interface MainContentProps {
     onImageError: (errorMessage: string) => void;
 }
 
-const MainContent: React.FC<MainContentProps> = ({onImageError}) => {
-    const {register, setValue, watch} = useFormContext();
+const MainContent: React.FC<MainContentProps> = ({ onImageError }) => {
+    const { register, setValue, watch } = useFormContext();
     const images = watch("images") || [];
     const coverImage = watch("coverImage");
+    const [open, setOpen] = React.useState(false);
+    const [value, setValue] = React.useState("");
 
     // Chuyển đổi File[] thành string[] sử dụng URL.createObjectURL
     const imageUrls: string[] = images.map((file: File) => URL.createObjectURL(file));
@@ -75,25 +104,57 @@ const MainContent: React.FC<MainContentProps> = ({onImageError}) => {
                     <Label htmlFor="productCategory">
                         Danh mục sản phẩm <span className="text-red-500">*</span>
                     </Label>
-                    <Select>
-                        <SelectTrigger className="mt-2">
-                            <SelectValue placeholder="Chọn danh mục"/>
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup>
-                                <SelectItem value="dau">Đề xuất danh mục</SelectItem>
-                                <SelectItem value="loai1">Dầu</SelectItem>
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
+                    <Popover open={open} onOpenChange={setOpen}>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={open}
+                                className="w-[200px] justify-between"
+                            >
+                                {value
+                                    ? frameworks.find((framework) => framework.value === value)?.label
+                                    : "Chọn danh mục sản phẩm..."}
+                                <ChevronsUpDown className="opacity-50" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[200px] p-0">
+                            <Command>
+                                <CommandInput placeholder="Tìm kiếm danh mục..." />
+                                <CommandList>
+                                    <CommandEmpty>Không tìm thấy danh mục nào.</CommandEmpty>
+                                    <CommandGroup>
+                                        {frameworks.map((framework) => (
+                                            <CommandItem
+                                                key={framework.value}
+                                                value={framework.value}
+                                                onSelect={(currentValue) => {
+                                                    setValue(currentValue === value ? "" : currentValue);
+                                                    setOpen(false);
+                                                }}
+                                            >
+                                                {framework.label}
+                                                <Check
+                                                    className={cn(
+                                                        "ml-auto",
+                                                        value === framework.value ? "opacity-100" : "opacity-0"
+                                                    )}
+                                                />
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
                 </div>
                 <div>
                     <Label htmlFor="productType">
                         Loại sản phẩm <span className="text-red-500">*</span>
                     </Label>
-                    <Select>
+                    <Select {...register("productType")}>
                         <SelectTrigger className="mt-2">
-                            <SelectValue placeholder="Chọn loại sản phẩm"/>
+                            <SelectValue placeholder="Chọn loại sản phẩm" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectGroup>
